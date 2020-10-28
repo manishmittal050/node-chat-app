@@ -5,14 +5,18 @@ const socket = io();
 
 
 const $messageForm = document.querySelector('#message-form');
-const $messageFormInput = $messageForm.querySelector('input');
+const $messageFormInput = $messageForm.querySelector('textarea');
 const $messageFormButton = $messageForm.querySelector('button');
 const $sendLocationButton = document.querySelector('#send-location')
 const $messages = document.querySelector('#message')
 // const $locationURL = document.querySelector('#location-url-id');
 
-const messageTemplate = document.querySelector('#message-template').innerHTML;
-const locationURLTemplate = document.querySelector('#location-template').innerHTML;
+const messageTemplateLeft = document.querySelector('#message-template-left').innerHTML;
+const messageTemplateRight = document.querySelector('#message-template-right').innerHTML;
+const locationURLTemplateLeft = document.querySelector('#location-template-left').innerHTML;
+const locationURLTemplateRight = document.querySelector('#location-template-right').innerHTML;
+const templateCenter = document.querySelector('#template-center').innerHTML;
+
 const sidebarTemplate = document.querySelector('#sidebar-template').innerHTML;
 
 
@@ -50,11 +54,35 @@ const autoscroll = () => {
 
 socket.on('message', (message)=>{
     console.log(message);
-    const html =  Mustache.render(messageTemplate, {
-        username : message.username,
-        message : message.text,
-        createdAt : moment(message.createdAt).format('hh:mm a')
-    });
+    let currentUser=this.location.search.substring(10);
+    currentUser = currentUser.substring(0, currentUser.indexOf("&")).toLowerCase();
+    let html;
+    if(message.username=="Welcome  !!!! "){
+        html =  Mustache.render(templateCenter, {
+            username : message.username.substring(0, 7) + " "+currentUser.substring(0,1).toUpperCase()+currentUser.substring(1)+"  !",
+            createdAt : moment(message.createdAt).format('hh:mm a')
+        });
+    }
+    else if(message.username.endsWith("has Joined!!") || message.username.endsWith("has left!!!")){
+        html =  Mustache.render(templateCenter, {
+            username : message.username.substring(0,1).toUpperCase()+message.username.substring(1),
+            createdAt : moment(message.createdAt).format('hh:mm a')
+        });
+    }
+    else if(currentUser==message.username){
+        html =  Mustache.render(messageTemplateRight, {
+            username : message.username,
+            message : message.text,
+            createdAt : moment(message.createdAt).format('hh:mm a')
+        });
+    }else{
+        html =  Mustache.render(messageTemplateLeft, {
+            username : message.username,
+            message : message.text,
+            createdAt : moment(message.createdAt).format('hh:mm a')
+        });
+    }
+    
     $messages.insertAdjacentHTML('beforeend',html);
     autoscroll();
 })
@@ -62,12 +90,23 @@ socket.on('message', (message)=>{
 
 socket.on('locationMessage',(message)=>{
     console.log("LocationMessage",message);
-
-    const html = Mustache.render(locationURLTemplate, {
-        username : message.username,
-        url : message.url,
-        createdAt : moment(message.createdAt).format('hh:mm a')
-    })
+    let currentUser=this.location.search.substring(10);
+    currentUser = currentUser.substring(0, currentUser.indexOf("&")).toLowerCase();
+    let html;
+    if(currentUser==message.username){
+        html = Mustache.render(locationURLTemplateRight, {
+            username : message.username,
+            url : message.url,
+            createdAt : moment(message.createdAt).format('hh:mm a')
+        })
+    }else{
+        html = Mustache.render(locationURLTemplateLeft, {
+            username : message.username,
+            url : message.url,
+            createdAt : moment(message.createdAt).format('hh:mm a')
+        })
+    }
+    
 
     $messages.insertAdjacentHTML('beforeend',html);
     autoscroll();
