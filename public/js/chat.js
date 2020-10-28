@@ -55,7 +55,8 @@ const autoscroll = () => {
 socket.on('message', (message)=>{
     console.log(message);
     let currentUser=this.location.search.substring(10);
-    currentUser = currentUser.substring(0, currentUser.indexOf("&")).toLowerCase();
+    currentUser = currentUser.substring(0, currentUser.indexOf("&")).toLowerCase().replaceAll("+"," ");
+    console.log(currentUser);
     let html;
     if(message.username=="Welcome  !!!! "){
         html =  Mustache.render(templateCenter, {
